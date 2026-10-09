@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#2a2140" />
+<title>ゲームセンター練習場(仮題)</title>
+<!-- ホーム画面に追加した時のアイコンと名前(2026-10-07。絵は tools/make_icon.py で作る) -->
+<link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<meta name="apple-mobile-web-app-title" content="クレーン練習" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <script type="module" crossorigin src="./assets/index-C16fHDHu.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-kw8vZR4Z.css">
+</head>
+<body>
+<div id="phone">
+  <div id="stage">
+    <div id="hint"></div>
+    <button class="pill" id="btn-back">‹ メニュー</button>
+    <div id="setup-name"></div>
+    <div id="score">取った数 0</div>
+    <div id="win">取れた!</div>
+  </div>
+  <div id="panel">
+    <div id="row">
+      <button class="pill" id="btn-side">横から見る</button>
+      <button class="pill" id="btn-retry">やり直し</button>
+      <button class="pill" id="btn-reset">景品戻す</button>
+      <button class="pill" id="btn-tips">コツ</button>
+      <button class="pill" id="btn-debug">調整</button>
+    </div>
+    <div id="pads">
+      <button class="pad" id="pad-x"><span class="big">横</span><span class="small">→</span></button>
+      <button class="pad" id="pad-z"><span class="big">奥</span><span class="small">↑</span></button>
+    </div>
+  </div>
+  <aside id="drawer" hidden>
+    <div id="drawer-head"><b id="drawer-title">調整(デバッグ)</b><button class="pill" id="btn-default">初期値</button><button class="pill" id="btn-close">閉じる</button></div>
+    <div id="sliders"></div>
+    <p id="build"></p>
+  </aside>
+  <div id="tips" hidden>
+    <div class="card-box">
+      <div id="tips-era"></div>
+      <h2 id="tips-title"></h2>
+      <ul id="tips-list"></ul>
+      <button class="pill big-btn" id="btn-tips-ok">わかった</button>
+    </div>
+  </div>
+  <div id="menu">
+    <header>
+      <button class="pill" id="btn-mode">‹ あそびをえらぶ</button>
+      <h1>クレーンゲーム練習場</h1>
+      <p>置き方をえらんで練習しよう</p>
+    </header>
+    <div id="menu-list"></div>
+    <footer>台は2つ。ひとつずつ質を上げています</footer>
+  </div>
+  <!-- メダルゲーム(src/medal/)。クレーンの画面とは別 -->
+  <div id="medal" hidden>
+    <!-- 上の表示の帯(M3.1): モニターに重ならないよう、絵(m-stage)の上に別の帯として置く。iPhone の上の帯(時計・電池)の分もあける -->
+    <div id="m-top">
+      <button class="pill" id="m-back">‹ もどる</button>
+      <div id="m-high">ハイスコア 50</div>
+      <div id="m-payout">払い出し <b>0</b></div>
+      <div id="m-collapse">崩れ最高 0</div>
+      <div id="m-tower"></div>
+    </div>
+    <div id="m-stage">
+      <div id="m-hint">画面をタップでメダルを投げ入れ(押しっぱなしで連続)</div>
+      <div id="m-overlay" hidden><canvas id="m-overlay-canvas" width="480" height="560"></canvas></div>
+      <div id="m-lottery"></div>
+      <div id="m-countdown"></div>
+      <div id="m-record"></div>
+      <button class="pill big-btn" id="m-borrow" hidden>両替(+50) あと3回</button>
+    </div>
+    <div id="m-panel">
+      <div id="m-small">
+        <button class="pill" id="m-auto" aria-pressed="false"><b>オート OFF</b><small>3枚/秒</small></button>
+        <button class="pill" id="m-debug">調整</button>
+      </div>
+      <div id="m-controls">
+        <div id="m-balance"><span>クレジット</span><b>00050</b></div>
+      </div>
+    </div>
+    <!-- ゲームオーバーのリザルト(M3.5): 行の並びは game.ts の buildResultRows。画面は順に出すだけ -->
+    <div id="m-result" hidden>
+      <div class="card-box">
+        <h2>ゲームオーバー</h2>
+        <div id="m-result-rows"></div>
+        <div id="m-result-btns">
+          <button class="pill big-btn" id="m-retry">リトライ</button>
+          <button class="pill big-btn" id="m-choose" style="background:#54468a">ゲームを選ぶ</button>
+        </div>
+      </div>
+    </div>
+    <aside id="m-drawer" hidden>
+      <div class="m-drawer-head"><b>調整: メダルの台</b><button class="pill" id="m-default">初期値</button><button class="pill" id="m-close">閉じる</button></div>
+      <div id="m-stats"></div>
+      <button class="pill" id="m-reset" style="width:100%;margin-top:10px;background:#3d5a8a">台を戻す(台を作り直す。台の形の調整を反映)</button>
+      <button class="pill" id="m-reset-records" style="width:100%;margin-top:10px;background:#8a3a4a">記録と手持ちをリセット</button>
+      <div class="m-trylabel">試し(各段階へ飛ぶ)</div>
+      <div class="m-tryrow">
+        <button class="pill" id="m-try-slot">スロットを回す</button>
+        <button class="pill" id="m-try-ball">ボールを出す</button>
+        <button class="pill" id="m-try-step">ステップ +1</button>
+      </div>
+      <div class="m-tryrow">
+        <button class="pill" id="m-try-chal">ルーレットへ</button>
+        <button class="pill" id="m-try-jpc">JPC へ</button>
+      </div>
+      <div class="m-tryrow">
+        <button class="pill" id="m-try-s200">タワー 200</button>
+        <button class="pill" id="m-try-s300">300</button>
+        <button class="pill" id="m-try-s500">500</button>
+        <button class="pill" id="m-try-s1000">1000</button>
+        <button class="pill" id="m-try-s2500">2500</button>
+      </div>
+      <div class="m-tryrow">
+        <button class="pill" id="m-try-tower">段を積む +10</button>
+        <button class="pill" id="m-try-big">タワーを倒す(試し)</button>
+      </div>
+      <div id="m-sliders"></div>
+      <p id="m-build" class="build"></p>
+    </aside>
+  </div>
+  <!-- 最初の画面: クレーンゲーム / メダル -->
+  <div id="mode">
+    <header>
+      <h1>ゲームセンター練習場(仮題)</h1>
+      <p>あそびをえらぼう</p>
+    </header>
+    <div id="mode-list">
+      <button class="card" id="mode-crane"><span class="no">🎪</span><span class="body"><span class="nm">クレーンゲーム</span><div class="ds">景品を取る練習。置き方をえらんで遊ぶ</div></span></button>
+      <button class="card" id="mode-medal"><span class="no">🪙</span><span class="body"><span class="nm">メダル</span><div class="ds">メダルを入れて、押し出しで落とす。タワーが崩れる!</div></span></button>
+    </div>
+    <footer>本物のお金は使いません</footer>
+  </div>
+</div>
+</body>
+</html>
